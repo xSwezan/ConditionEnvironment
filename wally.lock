@@ -8,6 +8,11 @@ version = "4.0.0"
 dependencies = []
 
 [[package]]
-name = "xswezan/conditionenvironment"
-version = "0.1.0"
+name = "lukadev-0/typed-promise"
+version = "4.0.2"
 dependencies = [["Promise", "evaera/promise@4.0.0"]]
+
+[[package]]
+name = "xswezan/conditionenvironment"
+version = "1.0.0"
+dependencies = [["Promise", "lukadev-0/typed-promise@4.0.2"]]
