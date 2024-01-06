@@ -1,6 +1,5 @@
 return function()
-	local ReplicatedStorage = game:GetService("ReplicatedStorage")
-	local ConditionEnvironment = require(ReplicatedStorage.lib)
+	local ConditionEnvironment = require(script.Parent)
 
 	it("should throw error if I call an Always callback twice", function()
 		ConditionEnvironment.new(function(Environment)
