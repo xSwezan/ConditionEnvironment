@@ -1,39 +1,59 @@
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ConditionEnvironment = require(ReplicatedStorage.lib)
+local TestEZ = require(ReplicatedStorage.DevPackages.TestEZ)
 
-local function Not(Callback: () -> boolean?): () -> boolean
-	return function(...)
-		return not Callback(...)
-	end
-end
+TestEZ.TestBootstrap:run({script.Parent})
 
-local function EnoughPlayers(): boolean
-	return (#Players:GetPlayers() > 1)
-end
+-- local function Not(Callback: () -> boolean?): () -> boolean
+-- 	return function(...)
+-- 		return not Callback(...)
+-- 	end
+-- end
 
-while task.wait() do
-	ConditionEnvironment.new(function(Environment)
-		print("Starting Round!")
+-- local function EnoughPlayers(): boolean
+-- 	return (#Players:GetPlayers() >= 1)
+-- end
+
+-- while task.wait() do
+-- 	ConditionEnvironment.new(function(Environment)
+-- 		print("Starting Round!")
 	
-		print("Waiting for players!")
+-- 		print("Waiting for players!")
 	
-		repeat task.wait() until EnoughPlayers()
-		Environment:AddCondition("IsEnoughPlayers", Not(EnoughPlayers), function()
-			warn("Someone left, restarting game!")
-		end)
+-- 		repeat task.wait() until EnoughPlayers()
+-- 		Environment:AddCondition("IsEnoughPlayers", Not(EnoughPlayers), function()
+-- 			warn("Someone left, restarting game!")
+-- 		end)
 	
-		print("Enough players joined!")
+-- 		print("Enough players joined!")
 	
-		print("Intermission")
-		task.wait(5)
+-- 		print("Intermission")
+-- 		task.wait(5)
 	
-		print("Starting soon!")
-		task.wait(5)
+-- 		print("Starting soon!")
+-- 		task.wait(5)
 	
-		Environment:RemoveCondition("IsEnoughPlayers")
+-- 		Environment:RemoveCondition("IsEnoughPlayers")
 	
-		print("Game started!")
-		task.wait(5)
-	end):await()
-end
+-- 		local RemoveMap = Environment:Always(function()
+-- 			print("REMOVING MAP")
+-- 		end)
+
+-- 		-- task.delay(5, function()
+-- 		-- 	Environment:AddCondition("ForceRestart", function()
+-- 		-- 		return true
+-- 		-- 	end, function()
+-- 		-- 		print("Simulating Restart")
+-- 		-- 	end)
+-- 		-- end)
+
+-- 		print("Game started!")
+-- 		task.wait(5)
+
+-- 		RemoveMap()
+
+-- 		print("Game ending!")
+-- 		task.wait(2)
+
+-- 		RemoveMap()
+-- 	end):catch(warn):await()
+-- end

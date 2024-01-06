@@ -1,3 +1,4 @@
+local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local Promise = require(script.Parent.Promise)
 
@@ -23,12 +24,16 @@ function ConditionEnvironment.new(Function: () -> nil): Promise.Promise
 		Conditions = {};
 
 		__connections = {};
+		__alwaysCallbacks = {};
 	}, ConditionEnvironment)
 
 	self.PromiseThread = Promise.try(Function, self) :: Promise.Promise
 
 	return Promise.new(function(resolve, reject, onCancel)
-		self.PromiseThread:andThen(resolve)
+		self.PromiseThread:andThen(function()
+			resolve()
+			self:Destroy()
+		end)
 
 		onCancel(function()
 			self:Destroy()
@@ -55,6 +60,19 @@ end
 
 -- Stops the current code and destroys the Environment
 function ConditionEnvironment:Destroy()
+	for Id: string, Value in self.__alwaysCallbacks do
+		local Callback: (args...) -> nil = Value[1]
+		if (type(Callback) ~= "function") then continue end
+
+		local Args: {any} = Value[2] or {}
+
+		-- table.remove(self.__alwaysCallbacks, Index)
+		self.__alwaysCallbacks[Id] = nil
+
+		Callback(unpack(Args))
+		-- task.spawn(Callback, unpack(Args))
+	end
+
 	for _, Connection: RBXScriptConnection in self.__connections do
 		if not (Connection.Connected) then continue end
 
@@ -100,6 +118,39 @@ function ConditionEnvironment:RemoveCondition(...: string)
 		if (type(Name) ~= "string") then continue end
 
 		self.Conditions[Name] = nil
+	end
+end
+
+--[=[
+	Add a callback that will run before the Environment gets destroyed.
+	This method returns a function that can be called as a reference to the original callback, though this can only be called once.
+	```lua
+	local DestroyMap = Environment:Always(function()
+		Map:Destroy()
+	end)
+
+	-- Another part of the script
+	DestroyMap()
+	DestroyMap() -- ERROR
+	```
+]=]
+function ConditionEnvironment:Always(Callback: (args...) -> nil, ...: args...): () -> nil
+	local Args: {any} = {...}
+
+	local Data = {Callback, Args}
+	local Id = HttpService:GenerateGUID()
+	-- table.insert(self.__alwaysCallbacks, Data)
+	self.__alwaysCallbacks[Id] = Data
+	
+	return function()
+		-- local Index: number? = table.find(self.__alwaysCallbacks, Data)
+		if not (self.__alwaysCallbacks[Id]) then
+			error("An Always callback can only be called once!")
+		end
+
+		self.__alwaysCallbacks[Id] = nil
+
+		Callback(unpack(Args))
 	end
 end
 
