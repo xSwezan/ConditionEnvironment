@@ -43,7 +43,7 @@ function ConditionEnvironment.new(Function: () -> nil): Promise.Promise
 				if (Args[1] ~= true) then continue end
 
 				if (type(ConditionInfo.ConditionMet) == "function") then
-					task.spawn(ConditionInfo.ConditionMet)
+					ConditionInfo.ConditionMet()
 				end
 	
 				resolve(select(2, unpack(Args)))
@@ -73,7 +73,7 @@ end
 -->---------<--
 
 --[=[
-	Add a condition that when met; destroys the environment, thus making all the code stop running.
+	Add a condition that when met (returns true); destroys the environment, thus making all the code stop running.
 	```lua
 	Environment:AddCondition("IsEnoughPlayers", function()
 		return (#Players:GetPlayers() >= 2)
