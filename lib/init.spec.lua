@@ -27,4 +27,14 @@ return function()
 		expect(callback1Called).to.equal(true)
 		expect(callback2Called).to.equal(true)
 	end)
+
+	it("should return the value returned by the callback", function()
+		ConditionEnvironment.new(function(Environment)
+			local callback = Environment:Always(function()
+				return "ok"
+			end)
+
+			expect(callback()).to.equal("ok")
+		end):await()
+	end)
 end

@@ -134,7 +134,7 @@ end
 	DestroyMap() -- ERROR
 	```
 ]=]
-function ConditionEnvironment:Always(Callback: (args...) -> nil, ...: args...): () -> nil
+function ConditionEnvironment:Always<T>(Callback: (args...) -> T, ...: args...): () -> T
 	local Args: {any} = {...}
 
 	local Data = {Callback, Args}
@@ -150,7 +150,7 @@ function ConditionEnvironment:Always(Callback: (args...) -> nil, ...: args...): 
 
 		self.__alwaysCallbacks[Id] = nil
 
-		Callback(unpack(Args))
+		return Callback(unpack(Args))
 	end
 end
 
