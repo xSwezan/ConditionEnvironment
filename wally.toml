@@ -1,6 +1,6 @@
 [package]
 name = "xswezan/conditionenvironment"
-version = "1.0.6"
+version = "1.0.7"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 

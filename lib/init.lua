@@ -21,18 +21,26 @@ export type Environment = {
 -- Returns a Promise, that when cancelled; destroys the Environment, thus making all the code stop running.
 function ConditionEnvironment.new(Function: () -> nil): Promise.Promise
 	local self = setmetatable({
-		Conditions = {};
-
+		__conditions = {};
 		__connections = {};
 		__alwaysCallbacks = {};
+
+		__conditionWasMet = false;
 	}, ConditionEnvironment)
 
 	self.PromiseThread = Promise.try(Function, self) :: Promise.Promise
 
-	return Promise.new(function(resolve, reject, onCancel)
+	self.MainPromise = Promise.new(function(resolve, reject, onCancel)
 		self.PromiseThread:andThen(function()
-			resolve()
-			self:Destroy()
+			if (self.ConditionMetPromise) then
+				self.ConditionMetPromise:await()
+			elseif (self.ConditionMetFound) then ---! This absolutely sucks
+				repeat RunService.Heartbeat:Wait() until (self.ConditionMetPromise)
+				self.ConditionMetPromise:await()
+			else
+				resolve()
+				self:Destroy()
+			end
 		end)
 
 		onCancel(function()
@@ -40,15 +48,20 @@ function ConditionEnvironment.new(Function: () -> nil): Promise.Promise
 		end)
 
 		table.insert(self.__connections, RunService.Heartbeat:Connect(function()
-			for Name: string, ConditionInfo: {Callback: () -> boolean?, ConditionMet: () -> nil?} in self.Conditions or {} do
+			if (self.__conditionWasMet) then return end
+
+			for Name: string, ConditionInfo: {Callback: () -> boolean?, ConditionMet: () -> nil?} in self.__conditions or {} do
 				if (type(ConditionInfo.Callback) ~= "function") then continue end
-				if (ConditionInfo.Callback() ~= true) then continue end
 	
 				local Args: {any} = {ConditionInfo.Callback()}
 				if (Args[1] ~= true) then continue end
 
+				self.__conditionWasMet = true
+
 				if (type(ConditionInfo.ConditionMet) == "function") then
-					ConditionInfo.ConditionMet()
+					self.ConditionMetFound = true
+					self.ConditionMetPromise = Promise.try(ConditionInfo.ConditionMet)
+					self.ConditionMetPromise:await()
 				end
 	
 				resolve(select(2, unpack(Args)))
@@ -56,6 +69,8 @@ function ConditionEnvironment.new(Function: () -> nil): Promise.Promise
 			end
 		end))
 	end)
+
+	return self.MainPromise
 end
 
 -- Stops the current code and destroys the Environment
@@ -65,12 +80,10 @@ function ConditionEnvironment:Destroy()
 		if (type(Callback) ~= "function") then continue end
 
 		local Args: {any} = Value[2] or {}
-
-		-- table.remove(self.__alwaysCallbacks, Index)
+		
 		self.__alwaysCallbacks[Id] = nil
 
 		Callback(unpack(Args))
-		-- task.spawn(Callback, unpack(Args))
 	end
 
 	for _, Connection: RBXScriptConnection in self.__connections do
@@ -81,6 +94,12 @@ function ConditionEnvironment:Destroy()
 
 	if (self.PromiseThread) then
 		self.PromiseThread:cancel()
+		self.PromiseThread = nil
+	end
+
+	if (self.MainPromise) then
+		self.MainPromise:cancel()
+		self.MainPromise = nil
 	end
 
 	self = nil
@@ -101,7 +120,7 @@ end
 	```
 ]=]
 function ConditionEnvironment:AddCondition(Name: string, Callback: () -> boolean, ConditionMet: () -> nil?)
-	self.Conditions[Name] = {
+	self.__conditions[Name] = {
 		Callback = Callback;
 		ConditionMet = ConditionMet;
 	}
@@ -117,7 +136,7 @@ function ConditionEnvironment:RemoveCondition(...: string)
 	for _, Name: string in {...} do
 		if (type(Name) ~= "string") then continue end
 
-		self.Conditions[Name] = nil
+		self.__conditions[Name] = nil
 	end
 end
 

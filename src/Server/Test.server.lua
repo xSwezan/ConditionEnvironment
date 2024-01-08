@@ -1,6 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TestEZ = require(ReplicatedStorage.DevPackages.TestEZ)
 
+task.wait(5)
+
 TestEZ.TestBootstrap:run({ReplicatedStorage.lib.lib})
 
 -- local function Not(Callback: () -> boolean?): () -> boolean

@@ -1,5 +1,5 @@
 return function()
-	local ConditionEnvironment = require(script.Parent)
+	local ConditionEnvironment = require(script.Parent.Parent)
 
 	it("should throw error if I call an Always callback twice", function()
 		ConditionEnvironment.new(function(Environment)
