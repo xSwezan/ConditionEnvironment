@@ -6,12 +6,14 @@ local ConditionEnvironment = {}
 ConditionEnvironment.__index = ConditionEnvironment
 
 export type Environment = {
-	new: (Function: () -> nil) -> Promise.Promise;
+	new: (Function: (ConditionEnvironment: Environment) -> nil) -> Promise.Promise;
 
 	Destroy: (self: Environment) -> nil;
 
 	AddCondition: (self: Environment, Name: string, Callback: () -> boolean, ConditionMet: () -> nil?) -> nil;
-	RemoveCondition: (self: Environment, string...) -> nil;
+	RemoveCondition: (self: Environment, string) -> nil;
+
+	Always: <T, TArgs...>(self: Environment, Callback: (...any) -> T, TArgs...) -> () -> T;
 }
 
 -->------------------<--
@@ -19,7 +21,7 @@ export type Environment = {
 -->------------------<--
 
 -- Returns a Promise, that when cancelled; destroys the Environment, thus making all the code stop running.
-function ConditionEnvironment.new(Function: () -> nil): Promise.Promise
+function ConditionEnvironment.new(Function: (ConditionEnvironment: Environment) -> nil): Promise.Promise
 	local self = setmetatable({
 		__conditions = {};
 		__connections = {};
@@ -76,7 +78,7 @@ end
 -- Stops the current code and destroys the Environment
 function ConditionEnvironment:Destroy()
 	for Id: string, Value in self.__alwaysCallbacks do
-		local Callback: (args...) -> nil = Value[1]
+		local Callback: (...any) -> nil = Value[1]
 		if (type(Callback) ~= "function") then continue end
 
 		local Args: {any} = Value[2] or {}
@@ -153,7 +155,7 @@ end
 	DestroyMap() -- ERROR
 	```
 ]=]
-function ConditionEnvironment:Always<T>(Callback: (args...) -> T, ...: args...): () -> T
+function ConditionEnvironment:Always<T>(Callback: (...any) -> T, ...: any): () -> T
 	local Args: {any} = {...}
 
 	local Data = {Callback, Args}

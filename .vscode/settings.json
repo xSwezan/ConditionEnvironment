@@ -1,3 +1,15 @@
 {
-	"robloxLsp.workspace.rojoProjectFile": "release"
+	"emeraldwalk.runonsave": {
+		"commands": [
+			{
+				"match": "wally.toml",
+				"isAsync": true,
+				"cmd": "Wally_Install.cmd"
+			}
+		]
+	},
+	"robloxLsp.workspace.rojoProjectFile": "release",
+	"luau-lsp.sourcemap.rojoProjectFile": "release.project.json",
+	"luau-lsp.require.mode": "relativeToFile",
+	"luau-lsp.completion.imports.requireStyle": "alwaysAbsolute",
 }

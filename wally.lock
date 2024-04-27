@@ -19,5 +19,5 @@ dependencies = []
 
 [[package]]
 name = "xswezan/conditionenvironment"
-version = "1.0.2"
+version = "1.0.10"
 dependencies = [["Promise", "lukadev-0/typed-promise@4.0.2"]]
